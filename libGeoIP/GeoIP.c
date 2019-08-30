@@ -1455,6 +1455,9 @@ geoipv6_t _GeoIP_addr_to_num_v6(const char *addr) {
     return IPV6_NULL;
 }
 
+#define gcc_likely(x) __builtin_expect(!!(x), 1)
+#define gcc_unlikely(x) __builtin_expect(!!(x), 0)
+
 unsigned int
 _GeoIP_seek_record_gl(GeoIP *gi, unsigned long ipnum, GeoIPLookup *gl) {
     int depth;
@@ -1476,7 +1479,7 @@ _GeoIP_seek_record_gl(GeoIP *gi, unsigned long ipnum, GeoIPLookup *gl) {
             /* The pointer is invalid */
             break;
         }
-        if (gi->cache != NULL) {
+        if (gcc_likely(gi->cache != NULL)) {
             /* simply point to record in memory */
             buf = gi->cache + byte_offset;
         } else if (gi->index_cache != NULL) {
@@ -1492,7 +1495,7 @@ _GeoIP_seek_record_gl(GeoIP *gi, unsigned long ipnum, GeoIPLookup *gl) {
 
         right_branch = (ipnum & (1 << depth)) != 0;
 
-        if (gi->record_length == 3) {
+        if (gcc_likely(record_pair_length == 6)) {
             /* Most common case is completely unrolled and uses constants.
              */
             p = &buf[right_branch * 3];
